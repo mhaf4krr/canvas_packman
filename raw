@@ -1,0 +1,250 @@
+let wrapper = document.querySelector(".game-wrapper")
+let ele = document.createElement("canvas")
+ele.id="game"
+ele.width = 600
+ele.height = 400
+
+wrapper.appendChild(ele)
+
+
+let player = {
+    x:50,
+    y:100,
+    pacmouth:320,
+    pacdir:0,
+    speed:7
+}
+
+let score = 0 , ghost_score = 0, ghost=false
+
+let enemy_global 
+
+
+class Ghost {
+    constructor(){
+        this.x=150,
+        this.y=100,
+        this.speed=4
+    }
+
+     spawnRandom(){
+        this.x = randomNumber(450);
+        this.y = randomNumber(250);
+        this.ghostNum = randomNumber(4)*64;
+        ghost = true
+    }
+}
+
+let canvas_config = {
+    width:600,
+    height:400
+}
+
+
+class PowerDot{
+    constructor(x,y){
+        this.x = x;
+        this.y = y;
+        this.visible = true
+    }
+
+    spawnRandom(){
+        this.x = randomNumber(400);
+        this.y = randomNumber(200);
+        
+    }
+
+}
+
+let powerdot = new PowerDot(0,0)
+powerdot.spawnRandom()
+
+let canvas = document.querySelector("#game")
+let ctx = canvas.getContext("2d")
+
+let mainImage = new Image()
+mainImage.ready = false
+mainImage.onload = checkReady
+mainImage.src = "pacman.png"
+
+
+function checkReady(){
+    this.ready = true;
+    playGame()
+}
+
+function playGame(){
+    render()
+    requestAnimationFrame(playGame)
+}
+
+
+function render(){
+    ctx.fillStyle = "black"
+    ctx.fillRect(0,0,600,400)
+
+
+
+
+
+    if(!ghost){
+        enemy_global = new Ghost()
+        enemy_global.spawnRandom()
+    }
+
+
+
+    // Collision Detection
+
+    // Pacman Eating up PowerDot
+
+ 
+
+
+
+
+    if(powerdot.visible){
+        ctx.fillStyle = "orange"
+        ctx.beginPath()
+        ctx.arc(powerdot.x,powerdot.y,10,0, Math.PI * 2)
+        ctx.closePath()
+        ctx.fill()
+    }
+
+    if(powerdot.visible == true){
+
+        
+
+        if( (Math.abs(powerdot.x - player.x) < 22) && (Math.abs(powerdot.y - player.y) < 22) ){
+            console.log("Hit")
+            score++
+            enemy_global.speed++;
+            if(enemy_global.speed > 5){
+                enemy_global.speed = 5;
+            }
+            console.log(enemy_global)
+            powerdot.spawnRandom()
+          
+        }
+    }
+   
+    if( (Math.abs(enemy_global.x - player.x) < 22) && (Math.abs(enemy_global.y - player.y) < 22) ){
+        ghost_score++;
+        enemy_global.spawnRandom()
+    }
+    
+    ctx.drawImage(mainImage , enemy_global.ghostNum ,0 ,32 , 32 , enemy_global.x,enemy_global.y , 32 ,32)
+
+    ctx.drawImage(mainImage , player.pacmouth , player.pacdir ,32,32, player.x , player.y ,32,32  )
+    ctx.font = "15px Verdana";
+    ctx.fillStyle = "white"
+    ctx.fillText(`Chaman: ${score} vs Bhoot: ${ghost_score}` , 10 , 20)
+}
+
+
+
+document.addEventListener("keydown", (e)=>{
+    move(e.key)
+    moveGhost(enemy_global)
+   
+})
+
+
+function moveGhost(enemy){
+   
+
+    if(player.x - enemy.x > 20){
+        // move ghost right
+        enemy.x += enemy.speed
+    }
+
+    else if(player.x - enemy.x < 20) {
+        //move left
+
+        enemy.x -= enemy.speed
+    }
+
+    
+
+    if(player.y - enemy.y > 20){
+        //move ghost down
+        enemy.y += enemy.speed
+    }
+
+    else if(player.y - enemy.y < 20) {
+        // move ghost up
+        enemy.y -= enemy.speed
+    }
+
+    else {
+
+        enemy.x = enemy.x;
+        enemy.y = enemy.y
+
+    }
+
+}
+
+
+
+
+function randomNumber(num){
+    return (Math.floor(Math.random()*num))+1
+}
+
+
+function move(key){
+    if(key == "ArrowLeft"){
+        player.x -= player.speed;
+        player.pacdir = 64 // 64 is left face of pacman
+    }
+
+    if(key == "ArrowUp"){
+        player.y -= player.speed;
+        player.pacdir = 96 // 64 is left face of pacman
+    }
+
+    if(key == "ArrowRight"){
+        player.x += player.speed;
+        player.pacdir = 0 // 64 is left face of pacman
+    }
+
+
+    if(key == "ArrowDown"){
+        player.y += player.speed;
+        player.pacdir = 32 // 64 is left face of pacman
+    }
+
+
+
+    /** Check For Canvas Bounds */
+
+    if( player.x > (canvas_config.width - 32) ){
+        // reset
+
+        player.x = 10;
+    }
+
+
+    if( player.y > (canvas_config.height -32) ){
+        player.y = 10;
+
+    }
+
+    if( player.x < 0){
+        player.x = canvas_config.width - 32
+    }
+
+    if( player.y < 0){
+        player.y = canvas_config.height - 32
+    }
+
+    if(player.pacmouth == 320){
+        player.pacmouth = 350
+    }
+    else {
+        player.pacmouth = 320
+    }
+
+    render()
+}
